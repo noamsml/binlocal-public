@@ -1,0 +1,20 @@
+#!/bin/bash
+
+PROGRAM=`which $1`
+
+if [ -z "$PROGRAM" ]; then
+	echo "No such script"
+	exit 1
+fi
+
+if [ -z "$(echo $PROGRAM | grep $HOME/binlocal-public)" ]; then
+	echo "Script not in binlocal-public"
+	exit 1
+fi
+
+if [ "$(ls ~/binlocal/$(basename $PROGRAM) 2>/dev/null)" ]; then
+	echo "Script already in binlocal"
+	exit 1
+fi
+
+mv `which $1` ~/binlocal
