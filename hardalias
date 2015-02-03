@@ -1,0 +1,10 @@
+#!/bin/bash
+
+if [ -f ~/binlocal/$1 ]; then
+	echo "hardalias already exists!"
+	exit 1
+fi
+
+echo "#!/bin/bash" > ~/binlocal/$1
+echo $2 \"\$@\" >> ~/binlocal/$1
+chmod +x ~/binlocal/$1

@@ -1,0 +1,37 @@
+#!/bin/bash
+
+if [ "`git diff HEAD --name-only`" ]; then
+	echo "You have unstaged changes. Please save or stash them before continuing."
+	exit 1
+fi
+
+
+git checkout master || exit 1
+git pull || exit 1
+
+BRANCHES=`git branch | grep -v "\*"`
+
+BRANCHES_FAILED=""
+
+for branch in $BRANCHES; do
+	git checkout $branch
+	git rebase master
+	if [ $? -ne 0 ]; then
+		git rebase --abort
+		BRANCHES_FAILED="$BRANCHES_FAILED $branch"
+		echo "Branch failed: $branch"
+	else
+		echo "Branch success: $branch"
+	fi 
+done
+
+git checkout master
+
+echo "===DONE==="
+
+if [ "$BRANCHES_FAILED" ]; then
+	echo "THERE WERE SOME FAILED BRANCHES:"
+	for branch in $BRANCHES_FAILED; do
+		echo $branch
+	done	
+fi

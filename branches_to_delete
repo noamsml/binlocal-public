@@ -1,0 +1,9 @@
+#!/bin/bash
+
+BRANCHES=`git branch | grep -v "master" | tr -d "\*"`
+MASTER=`git rev-parse master`
+for branch in $BRANCHES; do
+	if [ `git rev-parse $branch` == $MASTER ]; then
+		echo $branch
+	fi
+done
