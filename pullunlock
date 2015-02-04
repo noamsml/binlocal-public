@@ -1,5 +1,11 @@
 #!/bin/bash
 
-BRANCHNAME=`git rev-parse --abbrev-ref HEAD`
+
+if [ -z $1 ]; then
+	BRANCHNAME=`git rev-parse --abbrev-ref HEAD`
+else
+	BRANCHNAME=$1
+fi
+
 cat `reponame`/.pull_locks | grep -v $BRANCHNAME > /tmp/pull_locks
 mv /tmp/pull_locks `reponame`/.pull_locks
