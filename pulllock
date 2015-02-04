@@ -1,0 +1,9 @@
+	#!/bin/bash
+
+	BRANCHNAME=`git rev-parse --abbrev-ref HEAD`
+	if (cat `reponame`/.pull_locks | grep $BRANCHNAME > /dev/null); then
+		echo "Already locked"
+	else
+		echo $BRANCHNAME >> `reponame`/.pull_locks
+		echo "Locking"
+	fi

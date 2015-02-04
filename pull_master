@@ -14,15 +14,19 @@ BRANCHES=`git branch | grep -v "\*"`
 BRANCHES_FAILED=""
 
 for branch in $BRANCHES; do
-	git checkout $branch
-	git rebase master
-	if [ $? -ne 0 ]; then
-		git rebase --abort
-		BRANCHES_FAILED="$BRANCHES_FAILED $branch"
-		echo "Branch failed: $branch"
-	else
-		echo "Branch success: $branch"
-	fi 
+	if (cat `reponame`/.pull_locks | grep $branch > /dev/null); then
+		echo "Branch $branch locked by pull lock"
+	else 
+		git checkout $branch
+		git rebase master
+		if [ $? -ne 0 ]; then
+			git rebase --abort
+			BRANCHES_FAILED="$BRANCHES_FAILED $branch"
+			echo "Branch failed: $branch"
+		else
+			echo "Branch success: $branch"
+		fi 
+	fi
 done
 
 git checkout master
