@@ -1,5 +1,7 @@
 #!/bin/bash
 
+BRANCH=`git rev-parse --abbrev-ref HEAD`
+
 if [ "`git diff HEAD --name-only`" ]; then
 	echo "You have unstaged changes. Please save or stash them before continuing."
 	exit 1
@@ -16,7 +18,7 @@ BRANCHES_FAILED=""
 for branch in $BRANCHES; do
 	if (cat `reponame`/.pull_locks | grep $branch > /dev/null); then
 		echo "Branch $branch locked by pull lock"
-	else 
+	else
 		git checkout $branch
 		git rebase master
 		if [ $? -ne 0 ]; then
@@ -25,11 +27,11 @@ for branch in $BRANCHES; do
 			echo "Branch failed: $branch"
 		else
 			echo "Branch success: $branch"
-		fi 
+		fi
 	fi
 done
 
-git checkout master
+git checkout $BRANCH
 
 echo "===DONE==="
 
@@ -37,5 +39,5 @@ if [ "$BRANCHES_FAILED" ]; then
 	echo "THERE WERE SOME FAILED BRANCHES:"
 	for branch in $BRANCHES_FAILED; do
 		echo $branch
-	done	
+	done
 fi

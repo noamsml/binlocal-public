@@ -1,6 +1,6 @@
 #!/bin/bash
 
-BRANCHES=`git branch | grep -v "master" | tr -d "\*"`
+BRANCHES=`git branch | grep -v "master$" | tr -d "\*"`
 MASTER=`git rev-parse master`
 for branch in $BRANCHES; do
 	if [ -z "`git diff $branch master --name-only 2>&1`" ]; then
