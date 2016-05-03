@@ -1,0 +1,6 @@
+#!/bin/bash
+
+# Taken from stackoverflow. I have no idea how this works.
+IFS="$1";
+shift;
+echo "$*";
