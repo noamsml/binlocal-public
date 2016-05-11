@@ -1,0 +1,9 @@
+#!/bin/bash
+
+BRANCHNAME=`branch`
+if (cat ~/.amendlock | grep $BRANCHNAME > /dev/null); then
+  echo "Already locked"
+else
+  echo $BRANCHNAME >> ~/.amendlock
+  echo "Locking"
+fi

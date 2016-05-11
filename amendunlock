@@ -1,0 +1,5 @@
+#!/bin/bash
+
+BRANCHNAME=`branch`
+cat ~/.amendlock | grep -v $BRANCHNAME > /tmp/amends
+mv /tmp/amends ~/.amendlock

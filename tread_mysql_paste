@@ -1,0 +1,3 @@
+#!/bin/bash
+
+tr -d '|' | sed -e 's/^[[:space:]]*//'|sed -E 's/[[:space:]]+/	/g'

@@ -1,0 +1,4 @@
+for i in "$@"; do
+  cat ~/.idea_module_list | grep -v "^$1\$" > /tmp/idea_module_list &&
+  mv /tmp/idea_module_list > ~/.idea_module_list
+done

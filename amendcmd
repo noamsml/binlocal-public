@@ -1,0 +1,10 @@
+#!/bin/bash
+
+BRANCHNAME=`branch`
+if (cat ~/.amendlock | grep $BRANCHNAME > /dev/null); then
+  echo "Branch $BRANCHNAME is amend-locked!"
+elif [ `git rev-parse master` == `git rev-parse HEAD` ]; then
+  echo "Branch $BRANCHNAME has no private commits"
+else
+  "$@"
+fi
