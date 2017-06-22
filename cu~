@@ -12,7 +12,7 @@ module Plugins
   end
 
   def self.consolidate_lines
-    system("filter_lines.py #{Cu.changed_not_deleted.join(' ')}")
+    system("filter_lines.py #{Cu.changes.join(' ')}")
     true
   end
 
@@ -41,20 +41,8 @@ module Cu
     !`git diff HEAD`.strip.empty?
   end
 
-  def self.changed_not_deleted
-    `git diff master --name-status`.split("\n").map { |x| x.split }.select do |y|
-      y[0] != 'D'
-    end.map do |z|
-      if z[0][0] == 'R'
-        z[2]
-      else
-        z[1]
-      end
-    end
-  end
-
   def self.changes
-    @changes ||= changed_not_deleted.reject { |x| x.include? '.-jooq/' }.reject { |x| x.start_with? 'doc/' }
+    @changes ||= `changed-not-deleted`.split.map(&:strip).reject { |x| x.include? '.-jooq/' }.reject { |x| x.begin_with? 'doc/' }
   end
 
   def self.actually_push
