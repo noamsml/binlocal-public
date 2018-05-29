@@ -7,7 +7,7 @@ require 'rainbow'
 module Plugins
   def self.rubocop
     rubies = Cu.changes.select { |x| x.end_with? ".rb" }
-    return unless !rubies.empty?
+    return true unless !rubies.empty?
     system("bundle exec rubocop -D --auto-correct #{rubies.join(' ')}")
   end
 
@@ -18,6 +18,16 @@ module Plugins
 
   def self.run_all_tests
     system("cd #{Cu.gitroot} && RAILS_ENV=test bundle exec rspec")
+  end
+
+  def self.beautify_js
+    javsies = Cu.changes.select { |x| x.end_with? ".js" }
+    return true unless !javsies.empty?
+    javsies.each do |javsie|
+      puts "Formatting #{javsie}..."
+      tmpname = "/tmp/cujavsie-#{Time.now.nsec}.js"
+      system("js-beautify -s 2 #{javsie} > #{tmpname} && mv #{tmpname} #{javsie}")
+    end
   end
 end
 
@@ -32,6 +42,7 @@ end
 module Cu
   def self.plugins_enabled
     @plugins_enabled ||= {
+      beautify_js: true,
       rubocop: true,
       consolidate_lines: true
     }
