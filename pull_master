@@ -14,10 +14,18 @@ git pull || exit 1
 BRANCHES=`git branch | grep -v "\*"`
 
 BRANCHES_FAILED=""
+BRANCHES_REMOVED=""
+
+BRANCHES_TO_REMOVE=`merged-branches`
 
 for branch in $BRANCHES; do
-	if (cat `reponame`/.pull_locks | grep $branch > /dev/null); then
+	if (cat `reponame`/.pull_locks 2>/dev/null | grep $branch > /dev/null); then
 		echo "Branch $branch locked by pull lock"
+	elif (echo $BRANCHES_TO_REMOVE | grep $branch > /dev/null); then
+		parsed_branch=`git rev-parse $branch`
+		echo "Removing merged branch $branch (was $parsed_branch)"
+		BRANCHES_REMOVED="$BRANCHES_REMOVED $branch($parsed_branch)"
+		git bracnh -D $branch
 	else
 		git checkout $branch
 		git rebase master
@@ -33,10 +41,20 @@ done
 
 git checkout $BRANCH
 
+echo "Finishing with a remote prune (this takes a little bit of time)"
+git remote prune origin
+
 echo "===DONE==="
 
+if [ "$BRANCHES_REMOVED" ]; then
+	echo -e "\033[33m===REMOVED BRANCHES===\033[0m"
+	for branch_ref in $BRANCHES_REMOVED; do
+		echo $branch_ref
+	done
+fi
+
 if [ "$BRANCHES_FAILED" ]; then
-	echo "THERE WERE SOME FAILED BRANCHES:"
+	echo -e "\033[31m===FAILED BRANCHES===\033[0m"
 	for branch in $BRANCHES_FAILED; do
 		echo $branch
 	done
