@@ -1,4 +1,5 @@
 #!/usr/bin/env ruby
+# frozen_string_literal: true
 
 # "Checked upload" - run validations before uploading branch to git
 
@@ -6,9 +7,14 @@ require 'rainbow'
 
 module Plugins
   def self.rubocop
-    rubies = Cu.changes.select { |x| x.end_with? ".rb" }
-    return true unless !rubies.empty?
+    rubies = Cu.changes.select { |x| x.end_with? '.rb' }
+    return true if rubies.empty?
+
     system("bundle exec rubocop -D --auto-correct #{rubies.join(' ')}")
+  end
+
+  def self.typecheck
+    system("typecheck")
   end
 
   def self.consolidate_lines
@@ -21,8 +27,9 @@ module Plugins
   end
 
   def self.beautify_js
-    javsies = Cu.changes.select { |x| x.end_with? ".js" }
-    return true unless !javsies.empty?
+    javsies = Cu.changes.select { |x| x.end_with? '.js' }
+    return true if javsies.empty?
+
     javsies.each do |javsie|
       puts "Formatting #{javsie}..."
       tmpname = "/tmp/cujavsie-#{Time.now.nsec}.js"
@@ -44,7 +51,8 @@ module Cu
     @plugins_enabled ||= {
       beautify_js: true,
       rubocop: true,
-      consolidate_lines: true
+      consolidate_lines: false,
+      typecheck: true
     }
   end
 
@@ -53,8 +61,8 @@ module Cu
   end
 
   def self.changed_not_deleted
-    `git diff master --name-status`.split("\n").map { |x| x.split }.select do |y|
-      y[0] != 'D'
+    `git diff $(git merge-base master HEAD) --name-status`.split("\n").map(&:split).reject do |y|
+      y[0] == 'D'
     end.map do |z|
       if z[0][0] == 'R'
         z[2]
@@ -69,7 +77,7 @@ module Cu
   end
 
   def self.actually_push
-    system("git push -uf")
+    system('git push --set-upstream origin $(branch)')
   end
 
   def self.branch
@@ -86,35 +94,31 @@ module Cu
   end
 
   def self.rcfile
-    gitroot + "/curc.rb"
+    gitroot + '/curc.rb'
   end
 
   def self.main
     load rcfile if File.exist?(rcfile)
 
-    if branch == "master"
-      bad "Don't push on master"
-    end
+    bad "Don't push on master" if branch == 'master'
 
-    if has_diff
-      bad "Please commit your changes before pushing."
-    end
+    bad 'Please commit your changes before pushing.' if has_diff
 
     plugins_enabled.each do |plugin, enabled|
       next unless enabled
+
       puts Rainbow("Running #{plugin}").bright.blue
       bad "Plugin failed: #{plugin}" unless Plugins.send(plugin)
     end
 
     if has_diff
-      bad "Plugins have made changes. Please commit or amend accordingly."
+      bad 'Plugins have made changes. Please commit or amend accordingly.'
     end
 
-    puts Rainbow("Uploading to git").bright.green
+    puts Rainbow('Uploading to git').bright.green
 
     actually_push
   end
 end
-
 
 Cu.main

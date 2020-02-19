@@ -25,7 +25,7 @@ for branch in $BRANCHES; do
 		parsed_branch=`git rev-parse $branch`
 		echo "Removing merged branch $branch (was $parsed_branch)"
 		BRANCHES_REMOVED="$BRANCHES_REMOVED $branch($parsed_branch)"
-		git bracnh -D $branch
+		git branch -D $branch
 	else
 		git checkout $branch
 		git rebase master
