@@ -62,7 +62,7 @@ module Cu
   def self.plugins_enabled
     @plugins_enabled ||= {
       has_suspicious_untracked: true,
-      beautify_js: true,
+      beautify_js: false,
       rubocop: true,
       consolidate_lines: false,
       typecheck: true,
