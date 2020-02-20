@@ -2,6 +2,8 @@
 # frozen_string_literal: true
 
 # "Checked upload" - run validations before uploading branch to git
+# Note: Many of these validations are kinda specific to my current job.
+# Keeping this script here because I think the format is a useful framework.
 
 require 'rainbow'
 
@@ -22,8 +24,18 @@ module Plugins
     true
   end
 
-  def self.run_all_tests
-    system("cd #{Cu.gitroot} && RAILS_ENV=test bundle exec rspec")
+  def self.run_edited_tests
+    system("cd #{Cu.gitroot} && pay test #{Cu.changed_not_deleted.filter { |path| path.include?("/test/") }.join(' ')}")
+  end
+
+  def self.has_suspicious_untracked
+    files = `git ls-files --others --exclude-standard | grep -E "\\.(rb|yaml|js|jsx)$"`.strip
+
+    if !files.empty?
+      puts files
+    end
+
+    files.empty?
   end
 
   def self.beautify_js
@@ -49,10 +61,12 @@ end
 module Cu
   def self.plugins_enabled
     @plugins_enabled ||= {
+      has_suspicious_untracked: true,
       beautify_js: true,
       rubocop: true,
       consolidate_lines: false,
-      typecheck: true
+      typecheck: true,
+      run_edited_tests: true
     }
   end
 
@@ -77,7 +91,7 @@ module Cu
   end
 
   def self.actually_push
-    system('git push --set-upstream origin $(branch)')
+    system('git push -f --set-upstream origin $(branch)')
   end
 
   def self.branch
