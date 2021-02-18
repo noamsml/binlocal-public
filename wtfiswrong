@@ -1,0 +1,81 @@
+#!/usr/local/bin/python3
+
+import sys
+import re
+
+def main():
+    checkers = {
+    "rb": wtfiswrongrb
+    }
+
+    filename = sys.argv[1]
+    extension = filename.rsplit(".")[-1]
+    file_obj = open(filename)
+    file_contents = file_obj.read()
+    file_obj.close()
+    
+    if extension not in checkers:
+        print("Unknown extension {0}".format(extension))
+        return
+    
+    checkers[extension](file_contents)
+
+def wtfiswrongrb(file):
+    rb_check_for_missing_do(file)
+    rb_check_for_missmatched_end(file)
+
+def rb_check_for_missing_do(file):
+    lines = file.split("\n")
+    for number, line in enumerate(lines):
+        m = re.search("(it|describe) ['\"].*['\"](\\s+do)?", line)
+        if m and m.group(2) == None:
+            print("Missing do for {0} in line {1}: {2}".format(m.group(1), number, line))
+
+def indent_level(line):
+    count = 0
+    for char in line:
+        if char == ' ':
+            count+=1
+        else:
+            break
+    return count
+
+def rb_is_start_of_block(line):
+    return re.search("do(\\s+|.*|)?$", line) or re.search("^\\s*(if|case|class|module|def)", line) 
+
+def rb_check_for_missmatched_end(file):
+    lines = file.split("\n")
+    do_stack = []
+    minimum_indent = 0
+
+    for i, line in enumerate(lines):
+        if line.strip() == "": 
+            continue
+        indent = indent_level(line)
+        if indent < minimum_indent:
+            print("Indent break at line {0}, original line: {1}: {2}".format(i, do_stack[-1][0], do_stack[-1][1].strip()))
+
+        if rb_is_start_of_block(line):
+            minimum_indent = indent
+            do_stack.append((i, line))
+        
+        if line.strip() == "end":
+            if not do_stack:
+                print("FATAL: Mismatched end at line {0}".format(i))
+                return
+            
+            block_start = do_stack.pop()
+            if indent != indent_level(block_start[1]):
+                print("Mismatched end indent at line {0}, original line {1}: {2}".format(i, block_start[0], block_start[1].strip()))
+            
+            if do_stack:
+                minimum_indent = indent_level(do_stack[-1][1])
+            else:
+                minimum_indent = 0
+
+    if do_stack:
+        for i, line in do_stack:
+            print("Unmatch block start at {0}: {1}".format(i, line.strip()))
+
+if __name__ == "__main__":
+    main()

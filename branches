@@ -1,0 +1,20 @@
+#!/bin/bash
+
+BRANCHES=`git for-each-ref --sort=-committerdate refs/heads/ --format="%(refname:short)"`
+
+for branch in $BRANCHES; do
+    if ! (cat `reponame`/.pull_locks 2>/dev/null | grep -e "^$branch\$" > /dev/null); then
+        if [ -z "`git log  -n 1 $branch..master`" ]; then
+            echo $branch
+        else 
+            echo "$branch (UNMERGED)"
+        fi
+    fi
+done
+
+echo -e "\033[33mLOCKED\033[0m"
+for branch in $BRANCHES; do
+    if (cat `reponame`/.pull_locks 2>/dev/null | grep -e "^$branch\$" > /dev/null); then
+        echo -e "\033[2m$branch\033[0m"
+    fi
+done

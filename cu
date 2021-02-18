@@ -12,7 +12,7 @@ module Plugins
     rubies = Cu.changes.select { |x| x.end_with? '.rb' }
     return true if rubies.empty?
 
-    system("bundle exec rubocop -D --auto-correct #{rubies.join(' ')}")
+    system("bundle exec rubocop -D --auto-correct #{rubies.join(' ')}") && !Cu.has_diff
   end
 
   def self.typecheck
@@ -24,8 +24,69 @@ module Plugins
     true
   end
 
-  def self.run_edited_tests
-    system("cd #{Cu.gitroot} && pay test #{Cu.changed_not_deleted.filter { |path| path.include?("/test/") }.join(' ')}")
+  def self.run_edited_tests_rb
+    test_files = Cu.changed_not_deleted.filter { |path| path.include?("/test/")  && path.end_with?(".rb") }
+    return true if test_files.empty?
+    system("cd #{Cu.gitroot} && pay test #{test_files.join(' ')}")
+  end
+
+  def self.module_dir(path)
+    if File.exist?(File.join(path, "BUILD")) || File.exist?(File.join(path, "BUILD.bazel"))
+      return path
+    end
+
+    if path == "."
+      puts "WARNING: Found dot path module"
+      return nil
+    end
+
+    return module_dir(File.dirname(path))
+  end
+
+  def self.check_junit_build(path)
+    return nil unless path
+
+    bazel = if File.exist?(File.join(path, "BUILD"))
+      File.read(File.join(path, "BUILD"))
+    else
+      File.read(File.join(path, "BUILD.bazel"))
+    end
+
+    if bazel.include?("junit4_suite_test")
+      path
+    else
+      nil
+    end
+  end
+
+  def self.all_target(path)
+    return nil unless path
+
+    path + ":all"
+  end
+
+  def self.test_target(path)
+    if path.start_with?("src/main")
+      test_path = module_dir(path.sub("src/main", "src/test"))
+
+      if (test_path == "src/test")
+        return nil
+      end
+
+      return all_target(check_junit_build(test_path))
+    end
+    
+    return all_target(check_junit_build(path))
+  end
+
+  def self.test_edited_modules_java
+    test_targets = Cu.changed_not_deleted.filter { |path| path.end_with?(".java") }
+      .map { |path| module_dir(path) }.compact
+      .map { |dir| test_target(dir) }.compact.uniq
+
+    return true if test_targets.empty?
+
+    system("cd #{Cu.gitroot} && bazel test #{test_targets.join(' ')}")
   end
 
   def self.has_suspicious_untracked
@@ -66,7 +127,8 @@ module Cu
       rubocop: true,
       consolidate_lines: false,
       typecheck: true,
-      run_edited_tests: true
+      run_edited_tests_rb: true,
+      test_edited_modules_java: true
     }
   end
 

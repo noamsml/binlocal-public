@@ -11,6 +11,9 @@ fi
 git checkout master || exit 1
 git pull || exit 1
 
+echo "Attempting bundle install"
+bundle install
+
 BRANCHES=`git branch | grep -v "\*"`
 
 BRANCHES_FAILED=""
@@ -19,7 +22,13 @@ BRANCHES_REMOVED=""
 BRANCHES_TO_REMOVE=`merged-branches`
 
 for branch in $BRANCHES; do
-	if (cat `reponame`/.pull_locks 2>/dev/null | grep $branch > /dev/null); then
+	# Why the fuck does Gemfile-local.lock get changed? I don't wanna spend time debugging this
+	if [ "`git diff HEAD --name-only`" = "Gemfile-local.lock" ]; then
+		echo "Skipping gemfile lock nonsense"
+		git reset --hard
+	fi
+
+	if (cat `reponame`/.pull_locks 2>/dev/null | grep -e "^$branch\$" > /dev/null); then
 		echo "Branch $branch locked by pull lock"
 	elif (echo $BRANCHES_TO_REMOVE | grep $branch > /dev/null); then
 		parsed_branch=`git rev-parse $branch`
@@ -59,3 +68,8 @@ if [ "$BRANCHES_FAILED" ]; then
 		echo $branch
 	done
 fi
+
+if [ "`git diff HEAD --name-only`" = "Gemfile-local.lock" ]; then
+		git reset --hard
+fi
+
