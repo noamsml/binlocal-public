@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if (echo $1 | grep -e "^$USER-.*"); then
+if (echo $1 | grep -e "^$USER[-/].*"); then
   export TRUEBRANCH=$1
 else
   export TRUEBRANCH=$USER-$1

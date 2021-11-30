@@ -19,7 +19,7 @@ BRANCHES=`git branch | grep -v "\*"`
 BRANCHES_FAILED=""
 BRANCHES_REMOVED=""
 
-BRANCHES_TO_REMOVE=`merged-branches`
+BRANCHES_TO_REMOVE="`merged-branches` `branches_to_delete | grep -v $BRANCH`"
 
 for branch in $BRANCHES; do
 	# Why the fuck does Gemfile-local.lock get changed? I don't wanna spend time debugging this
@@ -48,7 +48,11 @@ for branch in $BRANCHES; do
 	fi
 done
 
-git checkout $BRANCH
+if (echo $BRANCHES_TO_REMOVE | grep $BRANCH > /dev/null); then
+	git checkout master
+else
+	git checkout $BRANCH
+fi
 
 echo "Finishing with a remote prune (this takes a little bit of time)"
 git remote prune origin
@@ -72,4 +76,3 @@ fi
 if [ "`git diff HEAD --name-only`" = "Gemfile-local.lock" ]; then
 		git reset --hard
 fi
-

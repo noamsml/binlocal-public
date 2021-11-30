@@ -83,10 +83,11 @@ module Plugins
     test_targets = Cu.changed_not_deleted.filter { |path| path.end_with?(".java") }
       .map { |path| module_dir(path) }.compact
       .map { |dir| test_target(dir) }.compact.uniq
+      .map { |dir| dir.sub("uppsala/", "") }
 
     return true if test_targets.empty?
 
-    system("cd #{Cu.gitroot} && bazel test #{test_targets.join(' ')}")
+    system("cd #{Cu.gitroot}/uppsala && bazel test #{test_targets.join(' ')}")
   end
 
   def self.has_suspicious_untracked
@@ -97,6 +98,10 @@ module Plugins
     end
 
     files.empty?
+  end
+
+  def self.format_everything_java
+    system("./scripts/format_all.sh")
   end
 
   def self.beautify_js
@@ -128,7 +133,8 @@ module Cu
       consolidate_lines: false,
       typecheck: true,
       run_edited_tests_rb: true,
-      test_edited_modules_java: true
+      test_edited_modules_java: true,
+      format_everything_java: false
     }
   end
 

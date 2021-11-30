@@ -2,44 +2,46 @@
 import os
 import sys
 import subprocess
+import traceback
 
 def bash(cmd):
     run = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
     if run.wait() != 0:
+        print("OUTPUT: " + run.stdout.read().strip().decode('utf8'))
         raise Exception("command failed")
-    return run.stdout.read().strip()
+    return run.stdout.read().strip().decode('utf8')
 
 def commit_at(depth):
     return bash("git rev-parse HEAD%s" % ('^' * depth))
 
 def reset_to_commit(commit):
-    print "Running reset to %s" % commit
+    print("Running reset to %s" % commit)
     bash("git reset --hard %s" % commit)
 
 def stash_save():
-    print "Running stash save"
+    print("Running stash save")
     bash("git stash save 'For amend_below'")
 
 def stash_pop():
-    print "Running stash pop"
+    print("Running stash pop")
     bash("git stash pop")
 
 def git_amend():
-    print "Running git amend"
+    print("Running git amend")
     bash("git commit --amend --no-edit -a")
 
 def cherry_pick(commit):
-    print "Cherry-picking %s" % commit
+    print("Cherry-picking %s" % commit)
     bash("git cherry-pick %s" % commit)
 
 def run(argv):
     depth = int(argv[1])
     commit_itself = commit_at(depth)
-    replay_commits = map(commit_at, range(depth-1, -1, -1))
+    replay_commits = list(map(commit_at, range(depth-1, -1, -1)))
     fix_commit = commit_at(0)
-    print "Commit replay: %s" % repr(replay_commits)
-    print "Replay base: %s" % commit_itself
-    print "Fix commit: %s" % fix_commit
+    print("Commit replay: %s" % repr(replay_commits))
+    print("Replay base: %s" % commit_itself)
+    print("Fix commit: %s" % fix_commit)
     try:
         stash_save()
         reset_to_commit(commit_itself)
@@ -48,6 +50,7 @@ def run(argv):
         for commit in replay_commits:
             cherry_pick(commit)
     except:
+        traceback.print_exc()
         reset_to_commit(fix_commit)
         stash_pop()
 

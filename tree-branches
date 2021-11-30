@@ -1,0 +1,5 @@
+
+
+def all_contents(branch)
+    `git branch --contains #{branch}`.split.map { |s| s.gsub('*', '').strip }.filter { |s| s.size > 0 }.filter { |s| s != branch }
+end

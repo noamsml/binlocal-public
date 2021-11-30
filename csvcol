@@ -1,0 +1,9 @@
+#!/usr/bin/env ruby
+
+require 'CSV'
+
+cols = ARGV.map(&:to_i)
+
+CSV.new(STDIN).each do |row|
+  puts cols.map { |c| row[c] }.join(",")
+end

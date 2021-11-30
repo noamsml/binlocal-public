@@ -3,4 +3,4 @@
 import sys
 
 for line in map(lambda s: "'%s'" % s.strip(), sys.stdin.readlines()):
-  print line
+  print(line)
