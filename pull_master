@@ -14,7 +14,7 @@ git pull || exit 1
 echo "Attempting bundle install"
 bundle install
 
-BRANCHES=`git branch | grep -v "\*"`
+BRANCHES=`git for-each-ref --sort=-committerdate refs/heads/ --format="%(refname:short)" | grep -v '^master$'`
 
 BRANCHES_FAILED=""
 BRANCHES_REMOVED=""

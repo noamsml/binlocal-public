@@ -12,16 +12,28 @@ module Plugins
     rubies = Cu.changes.select { |x| x.end_with? '.rb' }
     return true if rubies.empty?
 
-    system("bundle exec rubocop -D --auto-correct #{rubies.join(' ')}") && !Cu.has_diff
+    system("cd #{Cu.gitroot} && bundle exec rubocop -D --auto-correct #{rubies.join(' ')}") && !Cu.has_diff
   end
 
   def self.typecheck
-    system("typecheck")
+    system("cd #{Cu.gitroot} && typecheck")
   end
 
   def self.consolidate_lines
-    system("filter_lines.py #{Cu.changed_not_deleted.join(' ')}")
+    system("cd #{Cu.gitroot} && filter_lines.py #{Cu.changed_not_deleted.join(' ')}")
     true
+  end
+
+  def self.sc_terraform
+    tf_folders = Cu.changed_not_deleted
+                    .filter { |f| f.end_with?('.tf') }
+                    .map { |f| File.dirname(f) }
+                    .sort
+                    .uniq
+
+    tf_folders.each do |folder|
+      system("cd #{folder} && sc terraform fmt")
+    end
   end
 
   def self.run_edited_tests_rb
@@ -75,7 +87,7 @@ module Plugins
 
       return all_target(check_junit_build(test_path))
     end
-    
+
     return all_target(check_junit_build(path))
   end
 
@@ -134,7 +146,15 @@ module Cu
       typecheck: true,
       run_edited_tests_rb: true,
       test_edited_modules_java: true,
-      format_everything_java: false
+      format_everything_java: false,
+      sc_terraform: true
+    }
+  end
+
+  def self.plugins_slow
+    @plugins_slow ||= {
+      run_edited_tests_rb: true,
+      test_edited_modules_java: true
     }
   end
 
@@ -172,14 +192,14 @@ module Cu
   end
 
   def self.gitroot
-    `git rev-parse --show-toplevel`.strip
+    @gitroot ||= `git rev-parse --show-toplevel`.strip
   end
 
   def self.rcfile
     gitroot + '/curc.rb'
   end
 
-  def self.main
+  def self.main(fast)
     load rcfile if File.exist?(rcfile)
 
     bad "Don't push on master" if branch == 'master'
@@ -188,6 +208,7 @@ module Cu
 
     plugins_enabled.each do |plugin, enabled|
       next unless enabled
+      next if (fast && plugins_slow[plugin])
 
       puts Rainbow("Running #{plugin}").bright.blue
       bad "Plugin failed: #{plugin}" unless Plugins.send(plugin)
@@ -203,4 +224,4 @@ module Cu
   end
 end
 
-Cu.main
+Cu.main(ARGV.include?('--fast'))
