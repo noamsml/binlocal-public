@@ -103,7 +103,7 @@ module Plugins
   end
 
   def self.has_suspicious_untracked
-    files = `git ls-files --others --exclude-standard | grep -E "\\.(rb|yaml|js|jsx)$"`.strip
+    files = `git ls-files --others --exclude-standard | grep -E "\\.(rb|yaml|js|jsx|ts|tf)$|^BUILD(.bazel)?$"`.strip
 
     if !files.empty?
       puts files
