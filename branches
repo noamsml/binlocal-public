@@ -1,11 +1,16 @@
 #!/bin/bash
 
 BRANCHES=`git for-each-ref --sort=-committerdate refs/heads/ --format="%(refname:short)"`
+MASTER="`git rev-parse master`"
 
 for branch in $BRANCHES; do
     if ! (cat `reponame`/.pull_locks 2>/dev/null | grep -e "^$branch\$" > /dev/null); then
         if [ -z "`git log  -n 1 $branch..master`" ]; then
-            echo $branch
+            if [ $branch != "master" ] && [ "`git rev-parse $branch`" = "$MASTER" ]; then
+                echo "$branch (EMPTY)"
+            else
+                echo $branch
+            fi
         else 
             echo "$branch (UNMERGED)"
         fi

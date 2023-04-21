@@ -19,6 +19,20 @@ module Plugins
     system("cd #{Cu.gitroot} && typecheck")
   end
 
+  def self.api_services_validate
+    protos = Cu.changes.select { |x| x.end_with? '.proto' }
+    return true if protos.empty?
+
+    system("cd #{Cu.gitroot} && uppsala/scripts/api-services/validate")
+  end
+
+  def self.schema_validate
+    schema_protos = Cu.changes.select { |x| x.end_with? '.proto' }
+    return true if schema_protos.empty?
+
+    system("cd #{Cu.gitroot} && dev/check-schema-libraries-versioning")
+  end
+
   def self.consolidate_lines
     system("cd #{Cu.gitroot} && filter_lines.py #{Cu.changed_not_deleted.join(' ')}")
     true
@@ -158,6 +172,12 @@ module Cu
     }
   end
 
+  def self.plugins_bare
+    @plugins_bare ||= {
+      has_suspicious_untracked: true
+    }
+  end
+
   def self.has_diff
     !`git diff HEAD`.strip.empty?
   end
@@ -199,7 +219,7 @@ module Cu
     gitroot + '/curc.rb'
   end
 
-  def self.main(fast)
+  def self.main(fast, bare)
     load rcfile if File.exist?(rcfile)
 
     bad "Don't push on master" if branch == 'master'
@@ -209,6 +229,7 @@ module Cu
     plugins_enabled.each do |plugin, enabled|
       next unless enabled
       next if (fast && plugins_slow[plugin])
+      next if (bare && !plugins_bare[plugin])
 
       puts Rainbow("Running #{plugin}").bright.blue
       bad "Plugin failed: #{plugin}" unless Plugins.send(plugin)
@@ -224,4 +245,4 @@ module Cu
   end
 end
 
-Cu.main(ARGV.include?('--fast'))
+Cu.main(ARGV.include?('--fast'), ARGV.include?('--bare'))

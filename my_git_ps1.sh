@@ -13,7 +13,7 @@ function git_prompt_part () {
 		fi
 	fi
 
-	if [ -z "$GIT_PS1_SHOWDIRTYSTATE" ]; then
+	if [ "$GIT_PS1_SHOWDIRTYSTATE" ]; then
 		STATUS="$(git status -uno -s)"
 
 		if [ "$STATUS" ]; then
@@ -21,6 +21,8 @@ function git_prompt_part () {
 		else
 			STATUS_PART=""
 		fi
+	else 
+		STATUS_PART=" @"
 	fi
 
 	echo "$(basename $GIT_BASE)$SUBDIR_PART $(branch)$STATUS_PART"
