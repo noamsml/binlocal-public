@@ -19,6 +19,10 @@ module Plugins
     system("cd #{Cu.gitroot} && typecheck")
   end
 
+  def self.devlint
+    system("cd #{Cu.gitroot} && dev/lint --fix")
+  end
+
   def self.api_services_validate
     protos = Cu.changes.select { |x| x.end_with? '.proto' }
     return true if protos.empty?

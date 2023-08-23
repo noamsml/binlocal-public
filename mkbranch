@@ -6,4 +6,4 @@ else
   export TRUEBRANCH=$USER-$1
 fi
 
-git checkout -b $TRUEBRANCH master
+noam-git.sh checkout -b $TRUEBRANCH master
