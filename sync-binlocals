@@ -1,0 +1,4 @@
+#!/bin/bash
+
+cd ~/binlocal-public && git pull
+cd ~/binlocal-internal && git pull
