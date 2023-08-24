@@ -44,10 +44,10 @@ module Plugins
 
   def self.sc_terraform
     tf_folders = Cu.changed_not_deleted
-                    .filter { |f| f.end_with?('.tf') }
-                    .map { |f| File.dirname(f) }
-                    .sort
-                    .uniq
+                   .filter { |f| f.end_with?('.tf') }
+                   .map { |f| File.dirname(f) }
+                   .sort
+                   .uniq
 
     tf_folders.each do |folder|
       system("cd #{folder} && sc terraform fmt")
@@ -55,65 +55,65 @@ module Plugins
   end
 
   def self.run_edited_tests_rb
-    test_files = Cu.changed_not_deleted.filter { |path| path.include?("/test/")  && path.end_with?(".rb") }
+    test_files = Cu.changed_not_deleted.filter { |path| path.include?('/test/') && path.end_with?('.rb') }
     return true if test_files.empty?
+
     system("cd #{Cu.gitroot} && pay test #{test_files.join(' ')}")
   end
 
-  def self.module_dir(path)
-    if File.exist?(File.join(path, "BUILD")) || File.exist?(File.join(path, "BUILD.bazel"))
-      return path
-    end
+  def self.gen_packages
+    rubies = Cu.changed_not_deleted.filter { |path| path.end_with?('.rb') }
+    return true if rubies.empty?
 
-    if path == "."
-      puts "WARNING: Found dot path module"
+    system("cd #{Cu.gitroot} && scripts/packages/gen-packages")
+  end
+
+  def self.module_dir(path)
+    return path if File.exist?(File.join(path, 'BUILD')) || File.exist?(File.join(path, 'BUILD.bazel'))
+
+    if path == '.'
+      puts 'WARNING: Found dot path module'
       return nil
     end
 
-    return module_dir(File.dirname(path))
+    module_dir(File.dirname(path))
   end
 
   def self.check_junit_build(path)
     return nil unless path
 
-    bazel = if File.exist?(File.join(path, "BUILD"))
-      File.read(File.join(path, "BUILD"))
-    else
-      File.read(File.join(path, "BUILD.bazel"))
-    end
+    bazel = if File.exist?(File.join(path, 'BUILD'))
+              File.read(File.join(path, 'BUILD'))
+            else
+              File.read(File.join(path, 'BUILD.bazel'))
+            end
 
-    if bazel.include?("junit4_suite_test")
-      path
-    else
-      nil
-    end
+    path if bazel.include?('junit4_suite_test')
   end
 
   def self.all_target(path)
     return nil unless path
 
-    path + ":all"
+    path + ':all'
   end
 
   def self.test_target(path)
-    if path.start_with?("src/main")
-      test_path = module_dir(path.sub("src/main", "src/test"))
+    if path.start_with?('src/main')
+      test_path = module_dir(path.sub('src/main', 'src/test'))
 
-      if (test_path == "src/test")
-        return nil
-      end
+      return nil if test_path == 'src/test'
 
       return all_target(check_junit_build(test_path))
     end
 
-    return all_target(check_junit_build(path))
+    all_target(check_junit_build(path))
   end
 
   def self.test_edited_modules_java
-    test_targets = Cu.changed_not_deleted.filter { |path| path.end_with?(".java") }
-      .map { |path| module_dir(path) }.compact
-      .map { |dir| test_target(dir) }.compact.uniq
-      .map { |dir| dir.sub("uppsala/", "") }
+    test_targets = Cu.changed_not_deleted.filter { |path| path.end_with?('.java') }
+                     .map { |path| module_dir(path) }.compact
+                     .map { |dir| test_target(dir) }.compact.uniq
+                     .map { |dir| dir.sub('uppsala/', '') }
 
     return true if test_targets.empty?
 
@@ -123,15 +123,13 @@ module Plugins
   def self.has_suspicious_untracked
     files = `git ls-files --others --exclude-standard | grep -E "\\.(rb|yaml|js|jsx|ts|tf)$|^BUILD(.bazel)?$"`.strip
 
-    if !files.empty?
-      puts files
-    end
+    puts files unless files.empty?
 
     files.empty?
   end
 
   def self.format_everything_java
-    system("./scripts/format_all.sh")
+    system('./scripts/format_all.sh')
   end
 
   def self.beautify_js
@@ -165,7 +163,8 @@ module Cu
       run_edited_tests_rb: true,
       test_edited_modules_java: true,
       format_everything_java: false,
-      sc_terraform: true
+      sc_terraform: true,
+      gen_packages: true
     }
   end
 
@@ -232,16 +231,14 @@ module Cu
 
     plugins_enabled.each do |plugin, enabled|
       next unless enabled
-      next if (fast && plugins_slow[plugin])
-      next if (bare && !plugins_bare[plugin])
+      next if fast && plugins_slow[plugin]
+      next if bare && !plugins_bare[plugin]
 
       puts Rainbow("Running #{plugin}").bright.blue
       bad "Plugin failed: #{plugin}" unless Plugins.send(plugin)
     end
 
-    if has_diff
-      bad 'Plugins have made changes. Please commit or amend accordingly.'
-    end
+    bad 'Plugins have made changes. Please commit or amend accordingly.' if has_diff
 
     puts Rainbow('Uploading to git').bright.green
 
