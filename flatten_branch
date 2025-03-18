@@ -3,16 +3,16 @@
 if [ "$2" ]; then
   mkbranch $2 || exit
 else
-  if [ `branch` == "master" ]; then
-    echo "Cannot perform on master"
+  if [ `branch` == "main" ]; then
+    echo "Cannot perform on main"
     exit
   fi
 
-  if [ `git rev-parse HEAD` != `git rev-parse master` ]; then
-    echo "current branch must be identical to master; changes will be overridden"
+  if [ `git rev-parse HEAD` != `git rev-parse main` ]; then
+    echo "current branch must be identical to main; changes will be overridden"
     exit
   fi
 fi
 
-MERGE_BASE=$(git merge-base $1 master)
+MERGE_BASE=$(git merge-base $1 main)
 (git diff -p $MERGE_BASE $1 | git apply) && git commit -a -m "Flattened branch $1"

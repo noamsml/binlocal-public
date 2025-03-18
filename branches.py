@@ -54,7 +54,7 @@ class BranchDag:
         self.initial_branch_set = initial_branch_set
     
 def branches():
-    bash("git for-each-ref --sort=-committerdate refs/heads/ --format=\"%(refname:short)\" | grep -v '^master$'").split()
+    bash("git for-each-ref --sort=-committerdate refs/heads/ --format=\"%(refname:short)\" | grep -v '^main$'").split()
 
 def branch_dag(branch_list, branch_configs):
     branch_map = {}

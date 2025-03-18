@@ -1,9 +1,9 @@
 #!/bin/bash
 
-BRANCHES=`git branch | grep -v "master$" | tr -d "\*"`
-MASTER=`git rev-parse master`
+BRANCHES=`git branch | grep -v "main$" | tr -d "\*"`
+MAIN=`git rev-parse main`
 for branch in $BRANCHES; do
-	if [ -z "`git diff $branch master --name-only 2>&1`" ]; then
+	if [ -z "`git diff $branch main --name-only 2>&1`" ]; then
 		echo $branch
 	fi
 done

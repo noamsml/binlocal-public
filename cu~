@@ -69,8 +69,8 @@ module Cu
   def self.main
     load rcfile if File.exist?(rcfile)
 
-    if branch == "master"
-      bad "Don't push on master"
+    if branch == "main"
+      bad "Don't push on main"
     end
 
     if has_diff

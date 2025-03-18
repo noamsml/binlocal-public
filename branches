@@ -1,12 +1,12 @@
 #!/bin/bash
 
 BRANCHES=`git for-each-ref --sort=-committerdate refs/heads/ --format="%(refname:short)"`
-MASTER="`git rev-parse master`"
+MAIN="`git rev-parse main`"
 
 for branch in $BRANCHES; do
     if ! (cat `reponame`/.pull_locks 2>/dev/null | grep -e "^$branch\$" > /dev/null); then
-        if [ -z "`git log  -n 1 $branch..master`" ]; then
-            if [ $branch != "master" ] && [ "`git rev-parse $branch`" = "$MASTER" ]; then
+        if [ -z "`git log  -n 1 $branch..main`" ]; then
+            if [ $branch != "main" ] && [ "`git rev-parse $branch`" = "$MAIN" ]; then
                 echo "$branch (EMPTY)"
             else
                 echo $branch

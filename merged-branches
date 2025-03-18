@@ -1,6 +1,6 @@
 #!/bin/bash
 
-BRANCHES=`git branch | grep -v "master$" | tr -d "\*"`
+BRANCHES=`git branch | grep -v "main$" | tr -d "\*"`
 for branch in $BRANCHES; do
 	if [ -z "`git config --get-regexp "branch\.$branch\.remote"`" ]; then
 		continue
