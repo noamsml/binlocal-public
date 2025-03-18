@@ -8,7 +8,7 @@ if [ $REPO_NAME == "TypeSafe" ]; then
     ORG_NAME="typesafe-ai"
 fi
 
-if [ NOAM_IS_REMOTE_DEV == "true" ]; then
+if [ "$NOAM_IS_REMOTE_DEV" == "true" ]; then
     OPEN=echo
 else
     OPEN=open
