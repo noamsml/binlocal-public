@@ -1,9 +1,10 @@
 #!/bin/bash
 
-if (echo $1 | grep -e "^$USER[-/].*"); then
+
+if (echo $1 | grep -e "^noam[-/].*"); then
   export TRUEBRANCH=$1
 else
-  export TRUEBRANCH=$USER-$1
+  export TRUEBRANCH=noam/$1
 fi
 
-noam-git.sh checkout -b $TRUEBRANCH master
+git checkout -b $TRUEBRANCH main

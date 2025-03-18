@@ -159,19 +159,19 @@ module Cu
       beautify_js: false,
       rubocop: true,
       consolidate_lines: false,
-      typecheck: true,
-      run_edited_tests_rb: true,
-      test_edited_modules_java: true,
+      typecheck: false,
+      run_edited_tests_rb: false,
+      test_edited_modules_java: false,
       format_everything_java: false,
-      sc_terraform: true,
-      gen_packages: true
+      sc_terraform: false,
+      gen_packages: false
     }
   end
 
   def self.plugins_slow
     @plugins_slow ||= {
-      run_edited_tests_rb: true,
-      test_edited_modules_java: true
+      run_edited_tests_rb: false,
+      test_edited_modules_java: false
     }
   end
 
@@ -186,7 +186,7 @@ module Cu
   end
 
   def self.changed_not_deleted
-    `git diff $(git merge-base master HEAD) --name-status`.split("\n").map(&:split).reject do |y|
+    `git diff $(git merge-base main HEAD) --name-status`.split("\n").map(&:split).reject do |y|
       y[0] == 'D'
     end.map do |z|
       if z[0][0] == 'R'
@@ -225,7 +225,7 @@ module Cu
   def self.main(fast, bare)
     load rcfile if File.exist?(rcfile)
 
-    bad "Don't push on master" if branch == 'master'
+    bad "Don't push on main" if branch == 'main'
 
     bad 'Please commit your changes before pushing.' if has_diff
 

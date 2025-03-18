@@ -1,0 +1,11 @@
+#!/bin/bash
+
+REPO_NAME=$(basename $(git rev-parse --show-toplevel))
+ORG_NAME="noamsml"
+BRANCH=$(git rev-parse --abbrev-ref HEAD)
+
+if [ $REPO_NAME == "TypeSafe" ]; then
+    ORG_NAME="typesafe-ai"
+fi
+
+open https://github.com/$ORG_NAME/$REPO_NAME/compare/noam/add-noam-pubkey?expand=1
