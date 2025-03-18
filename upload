@@ -1,3 +1,7 @@
 #!/bin/bash
 
-~/binlocal-public/cu --fast
+# The CU script in ruby is a pain to run remotely and nothing in it is relevant
+# Probably deprecate?
+#~/binlocal-public/cu --fast
+
+git push --set-upstream origin $(branch)
