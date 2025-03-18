@@ -8,4 +8,10 @@ if [ $REPO_NAME == "TypeSafe" ]; then
     ORG_NAME="typesafe-ai"
 fi
 
-open https://github.com/$ORG_NAME/$REPO_NAME/compare/noam/add-noam-pubkey?expand=1
+OPEN=open
+
+if [ NOAM_IS_REMOTE_DEV = "true" ]; then
+    OPEN=echo
+fi
+
+$OPEN https://github.com/$ORG_NAME/$REPO_NAME/compare/noam/add-noam-pubkey?expand=1

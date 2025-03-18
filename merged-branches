@@ -8,5 +8,5 @@ for branch in $BRANCHES; do
 
 	if [ -z "`git ls-remote --heads origin $branch`" ]; then
 		echo $branch
-	fi
+	fi	
 done
