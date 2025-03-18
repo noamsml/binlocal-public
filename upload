@@ -4,4 +4,10 @@
 # Probably deprecate?
 #~/binlocal-public/cu --fast
 
-git push --set-upstream origin $(branch)
+BRANCH=$(branch)
+if [ $BRANCH = "main" ]; then
+    echo "Do not upload on main"
+    exit 1
+fi
+
+git push --set-upstream origin $(branch) "$@"
