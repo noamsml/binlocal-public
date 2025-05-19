@@ -14,4 +14,4 @@ else
     OPEN=open
 fi
 
-$OPEN https://github.com/$ORG_NAME/$REPO_NAME/compare/noam/$BRANCH?expand=1
+$OPEN https://github.com/$ORG_NAME/$REPO_NAME/compare/$BRANCH?expand=1
