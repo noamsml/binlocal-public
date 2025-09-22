@@ -1,0 +1,28 @@
+#!/usr/bin/env python
+import subprocess
+import argparse
+import json
+
+
+def kssh(namespace, pod):
+    run = subprocess.run(["kubectl", "exec", "-n", namespace, pod, "-it", "--", "bash"])
+    run.check_returncode()
+
+def get_pod(namespace):
+    # as a command: kubectl get pods -n namespace -o jsonpath='{name: .metadata.name}'
+    run = subprocess.run(["kubectl", "get", "pods", "-n", namespace, "-o", "json"], capture_output=True)
+    run.check_returncode()
+
+    pods = json.loads(run.stdout)["items"]
+
+    return [pods["metadata"]["name"] for pods in pods if pods["status"]["phase"] == "Running"][0]
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("namespace", type=str)
+    parser.add_argument("--pod", type=str, default=None)
+    args = parser.parse_args()
+
+    pod = args.pod or get_pod(args.namespace)
+    kssh(args.namespace, pod)

@@ -4,7 +4,7 @@ REPO_NAME=$(basename $(git rev-parse --show-toplevel))
 ORG_NAME="noamsml"
 BRANCH=$(git rev-parse --abbrev-ref HEAD)
 
-if [ $REPO_NAME == "TypeSafe" ]; then
+if [ $REPO_NAME == "TypeSafe" ] || [ $REPO_NAME == "L1_Pipe" ]; then
     ORG_NAME="typesafe-ai"
 fi
 
