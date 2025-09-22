@@ -8,21 +8,30 @@ def kssh(namespace, pod):
     run = subprocess.run(["kubectl", "exec", "-n", namespace, pod, "-it", "--", "bash"])
     run.check_returncode()
 
-def get_pod(namespace):
+
+def get_pod(namespace, pod_substring: str | None = None):
     # as a command: kubectl get pods -n namespace -o jsonpath='{name: .metadata.name}'
-    run = subprocess.run(["kubectl", "get", "pods", "-n", namespace, "-o", "json"], capture_output=True)
+    run = subprocess.run(
+        ["kubectl", "get", "pods", "-n", namespace, "-o", "json"], capture_output=True
+    )
     run.check_returncode()
 
     pods = json.loads(run.stdout)["items"]
 
-    return [pods["metadata"]["name"] for pods in pods if pods["status"]["phase"] == "Running"][0]
+    return [
+        pods["metadata"]["name"]
+        for pods in pods
+        if pods["status"]["phase"] == "Running"
+        and (pod_substring is None or pod_substring in pods["metadata"]["name"])
+    ][0]
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("namespace", type=str)
-    parser.add_argument("--pod", type=str, default=None)
+    parser.add_argument("--pod", "-p", type=str, default=None)
+    parser.add_argument("--pod-substring", "-s", type=str, default=None)
     args = parser.parse_args()
 
-    pod = args.pod or get_pod(args.namespace)
+    pod = args.pod or get_pod(args.namespace, args.pod_substring)
     kssh(args.namespace, pod)
