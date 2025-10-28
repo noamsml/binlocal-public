@@ -1,6 +1,6 @@
 #!/bin/bash
 
-BRANCHES=`git branch | grep -v "main" | tr -d "\*"`
+BRANCHES=`git branch | grep -v "main" | grep -v "^\\+" | tr -d "\*"`
 MAIN=`git rev-parse main`
 for branch in $BRANCHES; do
 	if [ `git rev-parse $branch` == $MAIN ]; then

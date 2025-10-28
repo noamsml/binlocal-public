@@ -4,8 +4,9 @@ import argparse
 import json
 
 
-def kssh(namespace, pod):
-    run = subprocess.run(["kubectl", "exec", "-n", namespace, pod, "-it", "--", "bash"])
+def kssh(namespace, pod, simple: bool = False):
+    subcommand = "bash" if not simple else "/bin/sh"
+    run = subprocess.run(["kubectl", "exec", "-n", namespace, pod, "-it", "--", subcommand])
     run.check_returncode()
 
 
@@ -31,7 +32,8 @@ if __name__ == "__main__":
     parser.add_argument("namespace", type=str)
     parser.add_argument("--pod", "-p", type=str, default=None)
     parser.add_argument("--pod-substring", "-s", type=str, default=None)
+    parser.add_argument("--simple", "-b", action="store_true", default=False)
     args = parser.parse_args()
 
     pod = args.pod or get_pod(args.namespace, args.pod_substring)
-    kssh(args.namespace, pod)
+    kssh(args.namespace, pod, args.simple)
